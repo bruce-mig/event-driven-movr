@@ -1,0 +1,25 @@
+services:
+  cockroachdb:
+    container_name: cockroachdb
+    hostname: cockroachdb
+    image: cockroachdb/cockroach:latest-v24.3
+    environment:
+      - COCKROACH_DATABASE=movr_rides
+      - COCKROACH_USER=demo
+#      - COCKROACH_PASSWORD=movr #not required in insecure mode
+    command: start-single-node --insecure --http-addr=cockroachdb:8080 # remove insecure flag for secure
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - cockroach-movr-data:/cockroach/cockroach-data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./data:/data:ro
+#      - ./certs:/cockroach/certs
+    networks:
+      - roachnet
+
+volumes:
+  cockroach-movr-data:
+networks:
+  roachnet:
