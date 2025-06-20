@@ -2,6 +2,7 @@ package com.github.bruce_mig.rides.service;
 
 import com.github.bruce_mig.rides.dao.RideRepository;
 import com.github.bruce_mig.rides.entity.Ride;
+import com.github.bruce_mig.rides.events.EventPublisher;
 import com.github.bruce_mig.rides.exception.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,13 +27,16 @@ import static org.mockito.Mockito.*;
 public class RideServiceImplTest {
     @Mock
     private RideRepository rideRepository;
+    @Mock
+    private EventPublisher eventPublisher;
+
 
     private RideService rideService;
 
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
-        rideService = new RideServiceImpl(rideRepository);
+        rideService = new RideServiceImpl(rideRepository, eventPublisher);
     }
 
     @Test
