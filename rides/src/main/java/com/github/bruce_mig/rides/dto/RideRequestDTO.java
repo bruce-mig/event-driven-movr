@@ -1,5 +1,7 @@
 package com.github.bruce_mig.rides.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Data Transfer object to specify start ride details
  */
@@ -7,6 +9,7 @@ package com.github.bruce_mig.rides.dto;
 public class RideRequestDTO {
 
     private String email;
+    @JsonProperty("vehicle_id")
     private String vehicleId;
 
     public String getEmail() {

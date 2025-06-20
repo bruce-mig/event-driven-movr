@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Data Transfer Object for Ride Info
@@ -12,10 +13,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class RideDTO {
 
     private UUID id;
+    @JsonProperty("vehicle_id")
     private UUID vehicleId;
+    @JsonProperty("user_email")
     private String userEmail;
+    @JsonProperty("start_time")
     @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime startTime;
+    @JsonProperty("end_time")
     @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime endTime;
 
