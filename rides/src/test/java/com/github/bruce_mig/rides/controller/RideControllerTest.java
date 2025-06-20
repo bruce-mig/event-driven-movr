@@ -5,7 +5,10 @@ import com.github.bruce_mig.rides.dto.RideDTO;
 import com.github.bruce_mig.rides.dto.RideRequestDTO;
 import com.github.bruce_mig.rides.dto.RideResponseDTO;
 import com.github.bruce_mig.rides.entity.Ride;
-import com.github.bruce_mig.rides.exception.*;
+import com.github.bruce_mig.rides.exception.InvalidUUIDException;
+import com.github.bruce_mig.rides.exception.InvalidValueException;
+import com.github.bruce_mig.rides.exception.InvalidVehicleStateException;
+import com.github.bruce_mig.rides.exception.NotFoundException;
 import com.github.bruce_mig.rides.service.RideService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,14 +17,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
-
 
 import static com.github.bruce_mig.rides.util.Constants.MSG_RIDE_ENDED;
 import static com.github.bruce_mig.rides.util.Constants.MSG_RIDE_STARTED;
 import static com.github.bruce_mig.rides.util.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class RideControllerTest {
@@ -91,18 +95,22 @@ class RideControllerTest {
     public void startRide_shouldStartTheRide() throws InvalidUUIDException, InvalidVehicleStateException {
         Ride ride = createRide();
         RideRequestDTO request = createRideRequest(ride);
-        LocalDateTime curTime = createDateTime();
 
         when(rideService.startRide(eq(UUID.fromString(request.getVehicleId())), eq(request.getEmail()), any()))
                 .thenReturn(ride);
 
+        LocalDateTime before = LocalDateTime.now(ZoneOffset.UTC);
         RideResponseDTO response = rideController.startRide(request).getBody();
+        LocalDateTime after = LocalDateTime.now(ZoneOffset.UTC);
 
         ArgumentCaptor<LocalDateTime> tsCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
 
         verify(rideService).startRide(eq(UUID.fromString(request.getVehicleId())), eq(request.getEmail()), tsCaptor.capture());
 
-        assertTrue(tsCaptor.getValue().compareTo(curTime) >= 0);
+        assertTrue(
+                (tsCaptor.getValue().compareTo(before) >= 0) && (tsCaptor.getValue().compareTo(after) <= 0),
+                "Timestamp should be between before and after"
+        );
 
         assertEquals(1, response.getMessages().length);
         assertEquals(String.format(MSG_RIDE_STARTED, request.getVehicleId()), response.getMessages()[0]);
@@ -185,7 +193,6 @@ class RideControllerTest {
     public void endRide_shouldEndTheRide_ifItExists() throws NotFoundException, InvalidUUIDException, InvalidValueException {
         Ride ride = createRide();
         EndRideRequestDTO request = createEndRideRequest(ride);
-        LocalDateTime curTime = createDateTime();
 
         when(rideService.endRide(
                 eq(UUID.fromString(request.getVehicleId())),
@@ -196,7 +203,9 @@ class RideControllerTest {
                 any())
         ).thenReturn(ride);
 
+        LocalDateTime before = LocalDateTime.now(ZoneOffset.UTC);
         RideResponseDTO response = rideController.endRide(request).getBody();
+        LocalDateTime after = LocalDateTime.now(ZoneOffset.UTC);
 
         ArgumentCaptor<LocalDateTime> tsCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
 
@@ -208,7 +217,10 @@ class RideControllerTest {
                 eq(Double.parseDouble(request.getLongitude())),
                 tsCaptor.capture());
 
-        assertTrue(tsCaptor.getValue().compareTo(curTime) >= 0);
+        assertTrue(
+                (tsCaptor.getValue().compareTo(before) >= 0) && (tsCaptor.getValue().compareTo(after) <= 0),
+                "Timestamp should be between before and after"
+        );
 
         assertEquals(1, response.getMessages().length);
         assertEquals(String.format(MSG_RIDE_ENDED, request.getVehicleId()), response.getMessages()[0]);
