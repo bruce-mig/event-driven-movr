@@ -9,7 +9,7 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties.spring.json.value.default.type: io.roach.movrapi.events.KafkaMessage
+#      properties.spring.json.value.default.type: io.roach.movrapi.events.KafkaMessage
   datasource:
     url: jdbc:postgresql://localhost:26257/movr_vehicles?sslmode=disable
     username: demo
