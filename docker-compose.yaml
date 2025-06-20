@@ -4,7 +4,7 @@ services:
     hostname: cockroachdb
     image: cockroachdb/cockroach:latest-v24.3
     environment:
-      - COCKROACH_DATABASE=movr_rides
+      - COCKROACH_DATABASE=demodb
       - COCKROACH_USER=demo
 #      - COCKROACH_PASSWORD=movr #not required in insecure mode
     command: start-single-node --insecure --http-addr=cockroachdb:8080 # remove insecure flag for secure
