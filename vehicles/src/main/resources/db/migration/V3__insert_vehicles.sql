@@ -1,0 +1,6 @@
+INSERT INTO movr_vehicles.vehicles (id, battery, vehicle_info) VALUES
+	('e92dbdff-ee44-47ae-9ce3-b9b4eb1f7ea6', 48, '{"color": "yellow", "purchase_information": {"manufacturer": "Upright Vehicles", "purchase_date": "2020-03-04 11:01:28", "serial_number": "10040"}, "type": "scooter", "wear": "damaged"}'),
+	('a4eea24e-669f-4e5f-85fc-7e88b970d1ab', 80, '{"color": "black", "purchase_information": {"manufacturer": "Scoot Life", "purchase_date": "2020-06-19 11:38:06", "serial_number": "12651"}, "type": "scooter", "wear": "damaged"}'),
+	('d511f956-83e8-48ed-aa3b-4e0dd285169f', 66, '{"color": "yellow", "purchase_information": {"manufacturer": "Upright Vehicles", "purchase_date": "2020-02-01 02:07:28", "serial_number": "12766"}, "type": "scooter", "wear": "damaged"}'),
+	('541f7135-41b6-484b-b201-ddb20ed25d47', 5, '{"color": "yellow", "purchase_information": {"manufacturer": "Upright Vehicles", "purchase_date": "2020-04-03 08:35:59", "serial_number": "15958"}, "type": "scooter", "wear": "light wear"}'),
+	('c7092d4f-228d-4570-aa64-576574e7f2ee', 85, '{"color": "black", "purchase_information": {"manufacturer": "Scoot Life", "purchase_date": "2020-07-05 19:13:58", "serial_number": "16360"}, "type": "scooter", "wear": "mint"}');
