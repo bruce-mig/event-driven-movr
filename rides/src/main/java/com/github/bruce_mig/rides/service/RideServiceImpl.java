@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import com.github.bruce_mig.rides.dao.RideRepository;
 import com.github.bruce_mig.rides.entity.Ride;
+import com.github.bruce_mig.rides.events.EventPublisher;
+import com.github.bruce_mig.rides.events.RideStarted;
 import com.github.bruce_mig.rides.exception.InvalidValueException;
 import com.github.bruce_mig.rides.exception.InvalidVehicleStateException;
 import com.github.bruce_mig.rides.exception.NotFoundException;
@@ -25,9 +27,11 @@ import static com.github.bruce_mig.rides.util.Constants.ERR_VEHICLE_IN_USE;
 public class RideServiceImpl implements RideService {
 
     private final RideRepository rideRepository;
+    private final EventPublisher eventPublisher;
 
-    public RideServiceImpl(RideRepository rideRepository) {
+    public RideServiceImpl(RideRepository rideRepository, EventPublisher eventPublisher) {
         this.rideRepository = rideRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -53,6 +57,14 @@ public class RideServiceImpl implements RideService {
         ride.setVehicleId(vehicleId);
         ride.setStartTime(startTime);
         rideRepository.save(ride);
+
+        RideStarted event = new RideStarted();
+        event.setRideId(ride.getId());
+        event.setUserEmail(userEmail);
+        event.setVehicleId(vehicleId);
+        event.setStartTime(startTime);
+
+        eventPublisher.publish(RideStarted.EVENT_NAME, event);
 
         return ride;
     }
