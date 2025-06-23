@@ -1,5 +1,6 @@
 package com.github.bruce_mig.vehicles.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,15 +8,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bruce_mig.vehicles.dto.*;
 import com.github.bruce_mig.vehicles.entity.Vehicle;
 import com.github.bruce_mig.vehicles.entity.VehicleWithLocation;
-import com.github.bruce_mig.vehicles.exception.InvalidUUIDException;
-import com.github.bruce_mig.vehicles.exception.InvalidValueException;
-import com.github.bruce_mig.vehicles.exception.InvalidVehicleStateException;
-import com.github.bruce_mig.vehicles.exception.NotFoundException;
+import com.github.bruce_mig.vehicles.events.KafkaMessage;
+import com.github.bruce_mig.vehicles.events.RideEnded;
+import com.github.bruce_mig.vehicles.events.RideStarted;
+import com.github.bruce_mig.vehicles.exception.*;
 import com.github.bruce_mig.vehicles.service.VehicleService;
 import jakarta.validation.constraints.Min;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -100,7 +102,7 @@ public class VehicleController {
      * @return
      */
     @GetMapping("/vehicles/location/{vehicleId}")
-    public ResponseEntity<VehicleWithLocationDTO> getVehicleWithLocation(@PathVariable String vehicleId) throws InvalidUUIDException, NotFoundException {
+    public ResponseEntity<VehicleWithLocationDTO> getVehicleWithLocation(@PathVariable String vehicleId) throws InvalidUUIDException, NotFoundException, IOException {
         logger.info("[GET] /api/vehicles/location/{vehicleId}");
 
         Vehicle vehicle = vehicleService.getVehicle(toUUID(vehicleId, ERR_INVALID_VEHICLE_ID));
@@ -125,6 +127,34 @@ public class VehicleController {
 
         String response = String.format(MSG_DELETED_VEHICLE, vehicleId);
         return ResponseEntity.ok(new MessagesDTO(response));
+    }
+
+    /**
+     * Consumes messages from a Kafka Topic
+     * @param message                               The contents of the message from Kafka
+     * @throws InvalidVehicleStateException     If the vehicle is in a state that is invalid for the given message
+     * @throws NotFoundException                If the vehicle referred to in the message doesn't exist
+     */
+    @KafkaListener(topics = "movr_rides.public.events")
+    public void handleRideEvent(KafkaMessage message) throws NotFoundException, DeserializationException {
+        switch(message.getMessage().getEventType()) {
+            case RideStarted.EVENT_TYPE:
+                logger.info("[KAFKA] Received {}", RideStarted.EVENT_TYPE);
+                RideStarted rideStarted = deserialize(mapper, message.getMessage().getEventData(), RideStarted.class);
+                vehicleService.checkoutVehicle(rideStarted.getVehicleId(), rideStarted.getStartTime());
+                break;
+            case RideEnded.EVENT_TYPE:
+                logger.info("[KAFKA] Received {}", RideEnded.EVENT_TYPE);
+                RideEnded rideEnded = deserialize(mapper, message.getMessage().getEventData(), RideEnded.class);
+                vehicleService.checkinVehicle(rideEnded.getVehicleId(),
+                        rideEnded.getLatitude(),
+                        rideEnded.getLongitude(),
+                        rideEnded.getBattery(),
+                        rideEnded.getEndTime());
+                break;
+            default:
+                logger.warn("[KAFKA] Received an unknown message: {}", message.getMessage().getEventType());
+        }
     }
 }
 

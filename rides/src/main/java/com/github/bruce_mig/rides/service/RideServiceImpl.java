@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.github.bruce_mig.rides.dao.RideRepository;
 import com.github.bruce_mig.rides.entity.Ride;
 import com.github.bruce_mig.rides.events.EventPublisher;
+import com.github.bruce_mig.rides.events.RideEnded;
 import com.github.bruce_mig.rides.events.RideStarted;
 import com.github.bruce_mig.rides.exception.InvalidValueException;
 import com.github.bruce_mig.rides.exception.InvalidVehicleStateException;
@@ -96,6 +97,17 @@ public class RideServiceImpl implements RideService {
         // set the end time for the ride
         ride.setEndTime(endTime);
         rideRepository.save(ride);
+
+        RideEnded event = new RideEnded();
+        event.setRideId(ride.getId());
+        event.setUserEmail(userEmail);
+        event.setVehicleId(vehicleId);
+        event.setBattery(battery);
+        event.setLatitude(latitude);
+        event.setLongitude(longitude);
+        event.setEndTime(endTime);
+
+        eventPublisher.publish(RideEnded.EVENT_NAME, event);
 
         return ride;
     }
