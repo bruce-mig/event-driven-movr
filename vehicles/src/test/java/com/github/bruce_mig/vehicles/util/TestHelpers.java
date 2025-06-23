@@ -6,6 +6,10 @@ import com.github.bruce_mig.vehicles.dto.VehicleInfoDTO;
 import com.github.bruce_mig.vehicles.entity.LocationHistory;
 import com.github.bruce_mig.vehicles.entity.Vehicle;
 import com.github.bruce_mig.vehicles.entity.VehicleWithLocation;
+import com.github.bruce_mig.vehicles.events.EventEnvelope;
+import com.github.bruce_mig.vehicles.events.KafkaMessage;
+import com.github.bruce_mig.vehicles.events.RideEnded;
+import com.github.bruce_mig.vehicles.events.RideStarted;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -89,4 +93,32 @@ public class TestHelpers {
     }
 
     public static UUID createLocationHistoryId() { return UUID.randomUUID(); }
+
+    public static KafkaMessage createKafkaMessage() {
+        KafkaMessage msg = new KafkaMessage();
+        msg.setMessage(createEventEnvelope());
+        return msg;
+    }
+
+    public static EventEnvelope createEventEnvelope() {
+        EventEnvelope envelope = new EventEnvelope();
+        envelope.setEventType(nextString("EventType"));
+        return envelope;
+    }
+
+    public static RideStarted createRideStarted() {
+        RideStarted rideStarted = new RideStarted();
+        rideStarted.setVehicleId(createVehicleId());
+        rideStarted.setStartTime(LocalDateTime.now());
+        return rideStarted;
+    }
+
+    public static RideEnded createRideEnded() {
+        RideEnded rideEnded = new RideEnded();
+        rideEnded.setBattery(rnd.nextInt(100));
+        rideEnded.setLatitude(rnd.nextDouble() * 180 - 90);
+        rideEnded.setLongitude(rnd.nextDouble() * 360 - 180);
+        rideEnded.setEndTime(LocalDateTime.now());
+        return rideEnded;
+    }
 }

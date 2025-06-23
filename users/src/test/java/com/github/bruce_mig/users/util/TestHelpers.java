@@ -1,6 +1,5 @@
 package com.github.bruce_mig.users.util;
 
-
 import com.github.bruce_mig.users.dto.CredentialsDTO;
 import com.github.bruce_mig.users.dto.UserDTO;
 import com.github.bruce_mig.users.entity.User;

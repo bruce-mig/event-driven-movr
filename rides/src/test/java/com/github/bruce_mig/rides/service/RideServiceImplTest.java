@@ -3,9 +3,13 @@ package com.github.bruce_mig.rides.service;
 import com.github.bruce_mig.rides.dao.RideRepository;
 import com.github.bruce_mig.rides.entity.Ride;
 import com.github.bruce_mig.rides.events.EventPublisher;
-import com.github.bruce_mig.rides.exception.*;
+import com.github.bruce_mig.rides.events.RideEnded;
+import com.github.bruce_mig.rides.events.RideStarted;
+import com.github.bruce_mig.rides.exception.InvalidVehicleStateException;
+import com.github.bruce_mig.rides.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -29,7 +33,6 @@ public class RideServiceImplTest {
     private RideRepository rideRepository;
     @Mock
     private EventPublisher eventPublisher;
-
 
     private RideService rideService;
 
@@ -127,7 +130,7 @@ public class RideServiceImplTest {
     }
 
     @Test
-    public void startRide_shouldCreateANewRide() throws InvalidVehicleStateException {
+    public void startRide_shouldCreateANewRideAndPublishAnEvent() throws InvalidVehicleStateException {
         UUID vehicleId = createVehicleId();
         String email = createEmail();
         LocalDateTime startTime = createDateTime();
@@ -143,6 +146,15 @@ public class RideServiceImplTest {
         assertEquals(email, ride.getUserEmail());
         assertEquals(startTime, ride.getStartTime());
         assertNull(ride.getEndTime());
+
+        ArgumentCaptor<RideStarted> eventCaptor = ArgumentCaptor.forClass(RideStarted.class);
+        verify(eventPublisher).publish(eq(RideStarted.EVENT_NAME), eventCaptor.capture());
+
+        RideStarted event = eventCaptor.getValue();
+        assertEquals(ride.getId(), event.getRideId());
+        assertEquals(email, event.getUserEmail());
+        assertEquals(vehicleId, event.getVehicleId());
+        assertEquals(startTime, event.getStartTime());
     }
 
     @Test
@@ -154,6 +166,7 @@ public class RideServiceImplTest {
         assertThrows(InvalidVehicleStateException.class, () -> rideService.startRide(existing.getVehicleId(), createEmail(), createDateTime()));
 
         verify(rideRepository, never()).save(any());
+        verify(eventPublisher, never()).publish(anyString(), any());
     }
 
     @Test
@@ -175,7 +188,7 @@ public class RideServiceImplTest {
     }
 
     @Test
-    public void endRide_shouldUpdateTheRide_ifItExists() throws NotFoundException {
+    public void endRide_shouldUpdateTheRideAndPublishAnEvent_ifItExists() throws NotFoundException {
         int battery = createBattery();
         double latitude = createLatitude();
         double longitude = createLongitude();
@@ -195,5 +208,17 @@ public class RideServiceImplTest {
         assertEquals(existing.getUserEmail(), updated.getUserEmail());
         assertEquals(existing.getStartTime(), updated.getStartTime());
         assertEquals(endTime, updated.getEndTime());
+
+        ArgumentCaptor<RideEnded> eventCaptor = ArgumentCaptor.forClass(RideEnded.class);
+        verify(eventPublisher).publish(eq(RideEnded.EVENT_NAME), eventCaptor.capture());
+
+        RideEnded event = eventCaptor.getValue();
+        assertEquals(existing.getId(), event.getRideId());
+        assertEquals(existing.getUserEmail(), event.getUserEmail());
+        assertEquals(existing.getVehicleId(), event.getVehicleId());
+        assertEquals(battery, event.getBattery());
+        assertEquals(latitude, event.getLatitude());
+        assertEquals(longitude, event.getLongitude());
+        assertEquals(endTime, event.getEndTime());
     }
 }

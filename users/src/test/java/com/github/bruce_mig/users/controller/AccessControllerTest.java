@@ -1,6 +1,5 @@
 package com.github.bruce_mig.users.controller;
 
-
 import com.github.bruce_mig.users.dto.CredentialsDTO;
 import com.github.bruce_mig.users.entity.User;
 import com.github.bruce_mig.users.exception.NotFoundException;

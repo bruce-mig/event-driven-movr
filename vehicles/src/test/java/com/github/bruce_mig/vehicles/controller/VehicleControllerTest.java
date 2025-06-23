@@ -1,14 +1,15 @@
 package com.github.bruce_mig.vehicles.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.github.bruce_mig.vehicles.dto.*;
 import com.github.bruce_mig.vehicles.entity.Vehicle;
 import com.github.bruce_mig.vehicles.entity.VehicleWithLocation;
-import com.github.bruce_mig.vehicles.exception.InvalidUUIDException;
-import com.github.bruce_mig.vehicles.exception.InvalidValueException;
-import com.github.bruce_mig.vehicles.exception.InvalidVehicleStateException;
-import com.github.bruce_mig.vehicles.exception.NotFoundException;
+import com.github.bruce_mig.vehicles.events.KafkaMessage;
+import com.github.bruce_mig.vehicles.events.RideEnded;
+import com.github.bruce_mig.vehicles.events.RideStarted;
+import com.github.bruce_mig.vehicles.exception.*;
 import com.github.bruce_mig.vehicles.service.VehicleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -145,7 +148,7 @@ class VehicleControllerTest {
     }
 
     @Test
-    public void getVehicleWithLocation_shouldReturnTheVehicle_ifItExists() throws NotFoundException, InvalidUUIDException {
+    public void getVehicleWithLocation_shouldReturnTheVehicle_ifItExists() throws NotFoundException, InvalidUUIDException, IOException {
         Vehicle expected = createVehicle();
 
         when(vehicleService.getVehicle(expected.getId())).thenReturn(expected);
@@ -184,4 +187,46 @@ class VehicleControllerTest {
 
         assertEquals("Deleted vehicle with id <"+vehicleId.toString()+"> from database.", messages.getMessages()[0]);
     }
+
+    @Test
+    public void handle_shouldDoNothing_ifItsAnUnknownEventType() throws InvalidVehicleStateException, NotFoundException, DeserializationException {
+        KafkaMessage dto = createKafkaMessage();
+        dto.getMessage().setEventType("Unknown");
+
+        vehicleController.handleRideEvent(dto);
+
+        verifyNoInteractions(vehicleService);
+    }
+
+    @Test
+    public void handle_shouldCallCheckoutVehicle_forRideStartedEvents() throws InvalidVehicleStateException, NotFoundException, DeserializationException, JsonProcessingException {
+        KafkaMessage dto = createKafkaMessage();
+        RideStarted rideStarted = createRideStarted();
+        dto.getMessage().setEventType(RideStarted.EVENT_TYPE);
+        TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {};
+        dto.getMessage().setEventData(mapper.convertValue(rideStarted, typeRef));
+
+        vehicleController.handleRideEvent(dto);
+
+        verify(vehicleService).checkoutVehicle(rideStarted.getVehicleId(), rideStarted.getStartTime());
+    }
+
+    @Test
+    public void handle_shouldCallCheckinVehicle_forRideEndedEvents() throws InvalidVehicleStateException, NotFoundException, DeserializationException {
+        KafkaMessage dto = createKafkaMessage();
+        RideEnded rideEnded = createRideEnded();
+        dto.getMessage().setEventType(RideEnded.EVENT_TYPE);
+        TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {};
+        dto.getMessage().setEventData(mapper.convertValue(rideEnded, typeRef));
+
+        vehicleController.handleRideEvent(dto);
+
+        verify(vehicleService).checkinVehicle(
+                rideEnded.getVehicleId(),
+                rideEnded.getLatitude(),
+                rideEnded.getLongitude(),
+                rideEnded.getBattery(),
+                rideEnded.getEndTime());
+    }
+
 }

@@ -1,9 +1,10 @@
 package com.github.bruce_mig.rides.util;
 
-
 import com.github.bruce_mig.rides.dto.EndRideRequestDTO;
 import com.github.bruce_mig.rides.dto.RideRequestDTO;
 import com.github.bruce_mig.rides.entity.Ride;
+import com.github.bruce_mig.rides.events.RideEnded;
+import com.github.bruce_mig.rides.events.RideStarted;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -77,5 +78,25 @@ public class TestHelpers {
 
     public static EndRideRequestDTO createEndRideRequest() {
         return createEndRideRequest(createRide());
+    }
+
+    public static RideStarted createRideStarted() {
+        RideStarted event = new RideStarted();
+        event.setRideId(createRideId());
+        event.setUserEmail(createEmail());
+        event.setVehicleId(createVehicleId());
+        event.setStartTime(LocalDateTime.now());
+        return event;
+    }
+
+    public static RideEnded createRideEnded() {
+        RideEnded event = new RideEnded();
+        event.setRideId(createRideId());
+        event.setVehicleId(createVehicleId());
+        event.setBattery(createBattery());
+        event.setLatitude(createLatitude());
+        event.setLongitude(createLongitude());
+        event.setEndTime(LocalDateTime.now());
+        return event;
     }
 }

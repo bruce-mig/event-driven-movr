@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+
 import static com.github.bruce_mig.rides.util.Constants.MSG_RIDE_ENDED;
 import static com.github.bruce_mig.rides.util.Constants.MSG_RIDE_STARTED;
 import static com.github.bruce_mig.rides.util.TestHelpers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class RideControllerTest {

@@ -1,8 +1,10 @@
 package com.github.bruce_mig.users.controller;
 
+
 import com.github.bruce_mig.users.dto.UserDTO;
 import com.github.bruce_mig.users.entity.User;
-import com.github.bruce_mig.users.exception.*;
+import com.github.bruce_mig.users.exception.NotFoundException;
+import com.github.bruce_mig.users.exception.UserAlreadyExistsException;
 import com.github.bruce_mig.users.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
