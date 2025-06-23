@@ -16,6 +16,7 @@ This repository implements a comprehensive **Vehicle Management Service** using 
 
 ## Architecture
 
+
 ### Services
 
 - **users**: Manages user profiles, authentication, and authorization.
@@ -32,17 +33,9 @@ All services interact with a shared **CockroachDB** cluster, and utilize the **t
 3. CDC streams capture new outbox entries, and a connector publishes them as events to **Apache Kafka** topics.
 4. **Other services** subscribe to relevant Kafka topics for eventual consistency or workflow triggers.
 
-**Diagram** (conceptual):
+**Diagram**:
 
-```
-+-----------+     +---------------+     +------------------+     +------------+
-|  ui_gateway|<-->|   [services]  |<--->|  CockroachDB     |<--->| Kafka      |
-+-----------+     +---------------+     +------------------+     +------------+
-                      ^  | Write/Read         | CDC Streams           ^
-                      |  +----+               +----> Outbox           |
-                      |                                               |
-                      +-----------------------------------------------+
-```
+![architecture](architecture.png)
 
 ---
 
@@ -100,9 +93,9 @@ All services interact with a shared **CockroachDB** cluster, and utilize the **t
 
 **Example Outbox Table Schema:**
 
-| id | aggregate_type | aggregate_id | event_type | payload | created_at |
-|----|---------------|--------------|------------|---------|------------|
-|... |   "ride"      |   "ride-42"  | "Created"  | {...}   | ...        |
+| id | ts       | event_type | event_data |
+|----|--------|------------|------------|
+|... | 2025-06-23 14:47:22.731159  | RideStarted  | {...}      |
 
 ---
 
